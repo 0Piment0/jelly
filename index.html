@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jelly Clips</title>
+<meta name="description" content="Controle de clipes e vídeos do Jelly: ideias, gravação, edição e publicação.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f4fb;
+    --surface: #ffffff;
+    --surface-2: #efebf7;
+    --border: #dfd8ec;
+    --text: #1d1730;
+    --muted: #6b6382;
+    --accent: #8b3dff;
+    --accent-2: #ff3d9a;
+    --accent-text: #ffffff;
+    --danger: #d92d4b;
+    --shadow: 0 1px 2px rgba(29,23,48,.06), 0 4px 16px rgba(29,23,48,.06);
+    --s-ideia: #7c8597;
+    --s-gravado: #2f80ed;
+    --s-editando: #e08a00;
+    --s-pronto: #12a37f;
+    --s-publicado: #8b3dff;
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0c17;
+      --surface: #191425;
+      --surface-2: #231c33;
+      --border: #2f2742;
+      --text: #f1edfa;
+      --muted: #a69dbd;
+      --accent: #a66bff;
+      --accent-2: #ff5fae;
+      --danger: #ff5f7a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+      --s-ideia: #98a1b3;
+      --s-gravado: #5b9dff;
+      --s-editando: #ffaa33;
+      --s-pronto: #2fd1a5;
+      --s-publicado: #b585ff;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0c17;
+    --surface: #191425;
+    --surface-2: #231c33;
+    --border: #2f2742;
+    --text: #f1edfa;
+    --muted: #a69dbd;
+    --accent: #a66bff;
+    --accent-2: #ff5fae;
+    --danger: #ff5f7a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    --s-ideia: #98a1b3;
+    --s-gravado: #5b9dff;
+    --s-editando: #ffaa33;
+    --s-pronto: #2fd1a5;
+    --s-publicado: #b585ff;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 16px 48px; }
+
+  header.top {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 20px 0 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 20px;
+  }
+  .brand h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+  .brand p { margin: 0; font-size: 13px; color: var(--muted); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 8px 12px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent; color: var(--accent-text); font-weight: 600;
+  }
+  .btn.primary:hover { filter: brightness(1.07); }
+  .btn.danger { color: var(--danger); }
+  .btn.icon { padding: 7px; width: 34px; height: 34px; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; cursor: pointer; text-align: left;
+  }
+  .stat:hover { border-color: var(--accent); }
+  .stat.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .stat .n { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px; margin-bottom: 16px;
+  }
+  .toolbar .search { flex: 1 1 220px; min-width: 0; position: relative; }
+  .toolbar .search input { width: 100%; padding-left: 34px; }
+  .toolbar .search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  input[type=text], input[type=url], input[type=date], input[type=search], select, textarea {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 10px; min-width: 0;
+  }
+  select { cursor: pointer; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 8px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-2); font-weight: 600; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; padding: 0 4px; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow);
+  }
+  .card.dragging { opacity: .45; }
+  .thumb {
+    position: relative; aspect-ratio: 16/9; background: var(--surface-2); overflow: hidden;
+    display: grid; place-items: center; border: 0; padding: 0; width: 100%; cursor: pointer;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .ph {
+    width: 100%; height: 100%; display: grid; place-items: center;
+    font-size: 34px; font-weight: 800; color: #fff; letter-spacing: -.02em;
+  }
+  .thumb .play {
+    position: absolute; inset: 0; display: grid; place-items: center; opacity: 0;
+    background: rgba(0,0,0,.35); transition: opacity .15s; color: #fff;
+  }
+  .thumb:hover .play, .thumb:focus-visible .play { opacity: 1; }
+  .badge {
+    position: absolute; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 6px;
+    background: rgba(0,0,0,.72); color: #fff; letter-spacing: .02em;
+  }
+  .badge.plat { top: 8px; left: 8px; }
+  .badge.dur { bottom: 8px; right: 8px; font-variant-numeric: tabular-nums; }
+  .card .body { padding: 12px 12px 8px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card h3 { font-size: 15px; margin: 0; line-height: 1.3; overflow-wrap: anywhere; }
+  .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text);
+  }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--muted); background: transparent; cursor: pointer;
+  }
+  .tag:hover { color: var(--accent); border-color: var(--accent); }
+  .notes { font-size: 13px; color: var(--muted); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .actions { display: flex; gap: 4px; padding: 8px 10px 10px; border-top: 1px solid var(--border); align-items: center; }
+  .card .actions .grow { flex: 1; }
+  .card .actions .btn { border-color: transparent; background: transparent; }
+  .card .actions .btn:hover { background: var(--surface-2); }
+  .fav[aria-pressed="true"] { color: #f5b301; }
+  .next { font-size: 12px; }
+
+  /* Kanban */
+  .kanban {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); gap: 12px;
+    overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity;
+  }
+  .col {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;
+    scroll-snap-align: start;
+  }
+  .col.over { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .col-head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; padding: 2px 4px; }
+  .col-head .count { margin-left: auto; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .col .card { cursor: grab; }
+  .col .card .notes { display: none; }
+  .col-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 18px 6px; border: 1px dashed var(--border); border-radius: 10px; }
+
+  /* Empty */
+  .empty {
+    text-align: center; padding: 56px 16px; background: var(--surface);
+    border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+  .empty h2 { margin: 8px 0 6px; font-size: 18px; }
+  .empty p { color: var(--muted); margin: 0 0 16px; }
+  .empty .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  /* Dialogs */
+  dialog {
+    border: 1px solid var(--border); border-radius: 16px; padding: 0;
+    background: var(--surface); color: var(--text); width: min(620px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px); box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  }
+  dialog::backdrop { background: rgba(10,6,20,.55); backdrop-filter: blur(2px); }
+  .dlg-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .dlg-head h2 { margin: 0; font-size: 17px; margin-right: auto; overflow-wrap: anywhere; }
+  .dlg-body { padding: 16px; display: grid; gap: 12px; }
+  .dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .field { display: grid; gap: 5px; }
+  .field label { font-size: 13px; font-weight: 600; }
+  .field .hint { font-size: 12px; color: var(--muted); }
+  .field input, .field select, .field textarea { width: 100%; }
+  textarea { resize: vertical; min-height: 80px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .err { color: var(--danger); font-size: 12px; }
+
+  #player { width: min(960px, calc(100vw - 32px)); }
+  .player-box { aspect-ratio: 16/9; background: #000; }
+  .player-box iframe, .player-box video { width: 100%; height: 100%; border: 0; display: block; }
+  .player-fallback { padding: 28px 16px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+  .player-fallback p { color: var(--muted); margin: 0; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg); padding: 10px 14px; border-radius: 10px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 50;
+    display: flex; gap: 12px; align-items: center; max-width: calc(100vw - 32px);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .toast button { background: transparent; border: 0; color: var(--accent-2); font-weight: 700; cursor: pointer; padding: 0; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 28px; }
+
+  @media (max-width: 640px) {
+    .brand h1 { font-size: 18px; }
+    .top-actions .label { display: none; }
+    .row2, .row3 { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .stat .n { font-size: 20px; }
+    .toolbar select { flex: 1 1 40%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">J</div>
+      <div>
+        <h1>Jelly Clips</h1>
+        <p>Controle de clipes e vídeos</p>
+      </div>
+    </div>
+    <div class="top-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn icon" id="btnTheme" title="Alternar tema" aria-label="Alternar tema claro/escuro">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="btn" id="btnBackup" title="Exportar / importar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span class="label">Backup</span>
+      </button>
+      <button class="btn primary" id="btnNew" title="Novo clipe (atalho: N)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Novo clipe
+      </button>
+    </div>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Resumo por status"></section>
+
+  <section class="toolbar" aria-label="Filtros">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr-only" for="q">Buscar</label>
+      <input type="search" id="q" placeholder="Buscar título, tag ou nota… (atalho: /)">
+    </div>
+    <label class="sr-only" for="fPlat">Plataforma</label>
+    <select id="fPlat"></select>
+    <label class="sr-only" for="fSort">Ordenar</label>
+    <select id="fSort">
+      <option value="recent">Mais recentes</option>
+      <option value="old">Mais antigos</option>
+      <option value="date">Data do vídeo</option>
+      <option value="title">Título A–Z</option>
+    </select>
+    <label class="toggle"><input type="checkbox" id="fFav"> ★ Favoritos</label>
+    <div class="seg" role="group" aria-label="Modo de visualização">
+      <button id="vGrid" aria-pressed="true">Grade</button>
+      <button id="vKanban" aria-pressed="false">Quadro</button>
+    </div>
+  </section>
+
+  <main id="main"></main>
+
+  <footer>Os dados ficam salvos neste navegador. Use <strong>Backup</strong> para levar a lista para outro aparelho.</footer>
+</div>
+
+<!-- Formulário -->
+<dialog id="dlgForm" aria-labelledby="formTitle">
+  <form id="form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h2 id="formTitle">Novo clipe</h2>
+      <button type="button" class="btn icon" data-close aria-label="Fechar">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="field">
+        <label for="iTitulo">Título *</label>
+        <input type="text" id="iTitulo" name="titulo" maxlength="160" required>
+        <span class="err" id="errTitulo" hidden>Dá um título pro clipe.</span>
+      </div>
+      <div class="field">
+        <label for="iUrl">Link do vídeo</label>
+        <input type="url" id="iUrl" name="url" placeholder="https://youtube.com/…, twitch.tv/…, tiktok.com/…">
+        <span class="hint">A plataforma e a capa do YouTube são detectadas automaticamente.</span>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="iPlat">Plataforma</label>
+          <select id="iPlat" name="plataforma"></select>
+        </div>
+        <div class="field">
+          <label for="iStatus">Status</label>
+          <select id="iStatus" name="status"></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label for="iData">Data</label>
+          <input type="date" id="iData" name="data">
+        </div>
+        <div class="field">
+          <label for="iDur">Duração</label>
+          <input type="text" id="iDur" name="duracao" placeholder="ex: 0:45" inputmode="numeric" maxlength="8">
+        </div>
+        <div class="field">
+          <label for="iFav">Favorito</label>
+          <select id="iFav" name="favorito"><option value="0">Não</option><option value="1">Sim ★</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="iTags">Tags</label>
+        <input type="text" id="iTags" name="tags" placeholder="separadas por vírgula: engraçado, gameplay, collab">
+      </div>
+      <div class="field">
+        <label for="iThumb">Capa personalizada (opcional)</label>
+        <input type="url" id="iThumb" name="thumb" placeholder="https://… link de uma imagem">
+      </div>
+      <div class="field">
+        <label for="iNotas">Notas</label>
+        <textarea id="iNotas" name="notas" placeholder="Minutagem, ideias de edição, música, quem aparece…"></textarea>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn danger" id="btnDelete" hidden>Excluir</button>
+      <span style="flex:1"></span>
+      <button type="button" class="btn" data-close>Cancelar</button>
+      <button type="submit" class="btn primary">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Player -->
+<dialog id="player" aria-labelledby="playerTitle">
+  <div class="dlg-head">
+    <h2 id="playerTitle"></h2>
+    <a class="btn" id="playerOpen" target="_blank" rel="noopener">Abrir ↗</a>
+    <button type="button" class="btn icon" data-close aria-label="Fechar">✕</button>
+  </div>
+  <div id="playerBody"></div>
+</dialog>
+
+<!-- Backup -->
+<dialog id="dlgBackup" aria-labelledby="backupTitle">
+  <div class="dlg-head">
+    <h2 id="backupTitle">Backup</h2>
+    <button type="button" class="btn icon" data-close aria-label="Fechar">✕</button>
+  </div>
+  <div class="dlg-body">
+    <p style="margin:0;color:var(--muted)">Exporte para guardar uma cópia ou mandar para outra pessoa. Ao importar, clipes com o mesmo ID ficam com a versão editada por último.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="btnExportJson">Exportar backup (.json)</button>
+      <button class="btn" id="btnExportCsv">Exportar planilha (.csv)</button>
+      <label class="btn" for="fileImport" style="cursor:pointer">Importar backup…</label>
+      <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    </div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:4px 0">
+    <button class="btn danger" id="btnWipe" style="justify-self:start">Apagar todos os clipes</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastUndo" hidden>Desfazer</button></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'jelly-clips-v1';
+  const THEME_KEY = 'jelly-clips-theme';
+
+  const STATUSES = [
+    { id: 'ideia',     label: 'Ideia' },
+    { id: 'gravado',   label: 'Gravado' },
+    { id: 'editando',  label: 'Editando' },
+    { id: 'pronto',    label: 'Pronto' },
+    { id: 'publicado', label: 'Publicado' },
+  ];
+  const STATUS_BY_ID = Object.fromEntries(STATUSES.map(s => [s.id, s]));
+
+  const PLATFORMS = [
+    { id: 'youtube',   label: 'YouTube',   short: 'YT', color: '#ff0033', match: /(^|\.)(youtube\.com|youtu\.be)$/ },
+    { id: 'twitch',    label: 'Twitch',    short: 'TW', color: '#9146ff', match: /(^|\.)twitch\.tv$/ },
+    { id: 'tiktok',    label: 'TikTok',    short: 'TT', color: '#111111', match: /(^|\.)tiktok\.com$/ },
+    { id: 'instagram', label: 'Instagram', short: 'IG', color: '#e1306c', match: /(^|\.)instagram\.com$/ },
+    { id: 'kick',      label: 'Kick',      short: 'K',  color: '#2fbf3a', match: /(^|\.)kick\.com$/ },
+    { id: 'x',         label: 'X/Twitter', short: 'X',  color: '#1d1d1f', match: /(^|\.)(x\.com|twitter\.com)$/ },
+    { id: 'drive',     label: 'Drive',     short: 'GD', color: '#1a73e8', match: /(^|\.)drive\.google\.com$/ },
+    { id: 'outro',     label: 'Outro',     short: '▶',  color: '#6b6382', match: null },
+  ];
+  const PLAT_BY_ID = Object.fromEntries(PLATFORMS.map(p => [p.id, p]));
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+  // ---------- Armazenamento ----------
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const data = raw ? JSON.parse(raw) : [];
+      return Array.isArray(data) ? data.map(normalize).filter(Boolean) : [];
+    } catch { return []; }
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(clips)); }
+    catch { toast('Não consegui salvar no navegador. Faça um backup!'); }
+  }
+  function normalize(c) {
+    if (!c || typeof c !== 'object' || !c.titulo) return null;
+    const now = new Date().toISOString();
+    return {
+      id: String(c.id || uid()),
+      titulo: String(c.titulo).slice(0, 160),
+      url: String(c.url || ''),
+      plataforma: PLAT_BY_ID[c.plataforma] ? c.plataforma : 'outro',
+      status: STATUS_BY_ID[c.status] ? c.status : 'ideia',
+      data: /^\d{4}-\d{2}-\d{2}$/.test(c.data || '') ? c.data : '',
+      duracao: String(c.duracao || ''),
+      tags: Array.isArray(c.tags) ? c.tags.map(t => String(t).trim()).filter(Boolean) : [],
+      thumb: String(c.thumb || ''),
+      notas: String(c.notas || ''),
+      favorito: !!c.favorito,
+      criadoEm: c.criadoEm || now,
+      atualizadoEm: c.atualizadoEm || c.criadoEm || now,
+    };
+  }
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+  let clips = load();
+  const state = { view: 'grid', q: '', plat: '', status: '', fav: false, sort: 'recent', tag: '' };
+
+  // ---------- Helpers ----------
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+  function safeUrl(u) {
+    try {
+      const url = new URL(u);
+      return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+    } catch { return ''; }
+  }
+
+  function detectPlatform(u) {
+    try {
+      const host = new URL(u).hostname.replace(/^www\.|^m\./, '');
+      const p = PLATFORMS.find(p => p.match && p.match.test(host));
+      return p ? p.id : 'outro';
+    } catch { return ''; }
+  }
+
+  function youtubeId(u) {
+    try {
+      const url = new URL(u);
+      const host = url.hostname.replace(/^www\.|^m\./, '');
+      if (host === 'youtu.be') return url.pathname.slice(1).split('/')[0] || null;
+      if (/(^|\.)youtube\.com$/.test(host)) {
+        if (url.searchParams.get('v')) return url.searchParams.get('v');
+        const m = url.pathname.match(/^\/(shorts|embed|live|v)\/([\w-]{6,})/);
+        if (m) return m[2];
+      }
+    } catch {}
+    return null;
+  }
+
+  function isDirectVideo(u) { return /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(u); }
+
+  function thumbFor(c) {
+    if (safeUrl(c.thumb)) return safeUrl(c.thumb);
+    const yt = youtubeId(c.url);
+    if (yt) return `https://i.ytimg.com/vi/${encodeURIComponent(yt)}/hqdefault.jpg`;
+    return '';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function parseTags(s) {
+    const seen = new Set();
+    return s.split(',').map(t => t.trim().replace(/^#/, '')).filter(t => {
+      const k = t.toLowerCase();
+      if (!t || seen.has(k)) return false;
+      seen.add(k); return true;
+    });
+  }
+
+  function nextStatus(id) {
+    const i = STATUSES.findIndex(s => s.id === id);
+    return i >= 0 && i < STATUSES.length - 1 ? STATUSES[i + 1] : null;
+  }
+
+  // ---------- Filtro ----------
+  function filtered({ ignoreStatus = false } = {}) {
+    const q = state.q.trim().toLowerCase();
+    let list = clips.filter(c => {
+      if (state.plat && c.plataforma !== state.plat) return false;
+      if (!ignoreStatus && state.status && c.status !== state.status) return false;
+      if (state.fav && !c.favorito) return false;
+      if (state.tag && !c.tags.some(t => t.toLowerCase() === state.tag.toLowerCase())) return false;
+      if (q) {
+        const hay = [c.titulo, c.notas, c.tags.join(' '), PLAT_BY_ID[c.plataforma].label].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const by = {
+      recent: (a, b) => b.atualizadoEm.localeCompare(a.atualizadoEm),
+      old: (a, b) => a.criadoEm.localeCompare(b.criadoEm),
+      date: (a, b) => (b.data || '').localeCompare(a.data || ''),
+      title: (a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR', { sensitivity: 'base' }),
+    }[state.sort];
+    return list.sort(by);
+  }
+
+  // ---------- Render ----------
+  function renderStats() {
+    const base = filtered({ ignoreStatus: true });
+    const counts = Object.fromEntries(STATUSES.map(s => [s.id, 0]));
+    base.forEach(c => counts[c.status]++);
+    const items = [
+      `<button class="stat ${state.status === '' ? 'active' : ''}" data-status="">
+         <div class="n">${base.length}</div><div class="l">Todos</div></button>`,
+      ...STATUSES.map(s => `
+        <button class="stat ${state.status === s.id ? 'active' : ''}" data-status="${s.id}">
+          <div class="n">${counts[s.id]}</div>
+          <div class="l"><span class="dot" style="background:var(--s-${s.id})"></span>${s.label}</div>
+        </button>`),
+    ];
+    $('#stats').innerHTML = items.join('');
+  }
+
+  function cardHTML(c) {
+    const p = PLAT_BY_ID[c.plataforma];
+    const st = STATUS_BY_ID[c.status];
+    const th = thumbFor(c);
+    const nx = nextStatus(c.status);
+    const thumb = th
+      ? `<img src="${esc(th)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback>`
+      : '';
+    const ph = `<div class="ph" style="background:linear-gradient(135deg, ${p.color}, var(--accent))${th ? ';display:none' : ''}">${esc(p.short)}</div>`;
+    return `
+      <article class="card" draggable="true" data-id="${esc(c.id)}">
+        <button class="thumb" data-act="play" aria-label="Assistir ${esc(c.titulo)}">
+          ${thumb}${ph}
+          <span class="badge plat">${esc(p.label)}</span>
+          ${c.duracao ? `<span class="badge dur">${esc(c.duracao)}</span>` : ''}
+          <span class="play"><svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+        </button>
+        <div class="body">
+          <h3>${esc(c.titulo)}</h3>
+          <div class="meta">
+            <span class="pill"><span class="dot" style="background:var(--s-${st.id})"></span>${st.label}</span>
+            ${c.data ? `<span>${fmtDate(c.data)}</span>` : ''}
+          </div>
+          ${c.tags.length ? `<div class="tags">${c.tags.map(t => `<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join('')}</div>` : ''}
+          ${c.notas ? `<p class="notes">${esc(c.notas)}</p>` : ''}
+        </div>
+        <div class="actions">
+          <button class="btn icon fav" data-act="fav" aria-pressed="${c.favorito}" aria-label="Favorito" title="Favorito">${c.favorito ? '★' : '☆'}</button>
+          <button class="btn icon" data-act="edit" aria-label="Editar" title="Editar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          </button>
+          <button class="btn icon" data-act="copy" aria-label="Copiar link" title="Copiar link" ${c.url ? '' : 'disabled style="opacity:.35"'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+          </button>
+          <span class="grow"></span>
+          ${nx ? `<button class="btn next" data-act="next" title="Mover para ${nx.label}">${nx.label} →</button>` : '<span class="pill" style="background:transparent;color:var(--s-publicado)">✓ no ar</span>'}
+        </div>
+      </article>`;
+  }
+
+  function renderEmpty() {
+    const none = clips.length === 0;
+    return `
+      <div class="empty">
+        <div style="font-size:40px" aria-hidden="true">${none ? '🎬' : '🔎'}</div>
+        <h2>${none ? 'Nenhum clipe ainda' : 'Nada encontrado'}</h2>
+        <p>${none ? 'Cadastre o primeiro clipe ou carregue exemplos para ver como funciona.' : 'Tente outra busca ou limpe os filtros.'}</p>
+        <div class="row">
+          ${none
+            ? `<button class="btn primary" data-empty="new">Adicionar clipe</button><button class="btn" data-empty="demo">Carregar exemplos</button>`
+            : `<button class="btn" data-empty="clear">Limpar filtros</button>`}
+        </div>
+      </div>`;
+  }
+
+  function render() {
+    renderStats();
+    const main = $('#main');
+    const tagChip = state.tag
+      ? `<div style="margin:-6px 0 12px;display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)">Filtrando por <span class="pill">#${esc(state.tag)}</span><button class="btn" data-empty="untag" style="padding:3px 8px">✕ remover</button></div>`
+      : '';
+
+    if (state.view === 'grid') {
+      const list = filtered();
+      main.innerHTML = tagChip + (list.length ? `<div class="grid">${list.map(cardHTML).join('')}</div>` : renderEmpty());
+    } else {
+      const list = filtered({ ignoreStatus: true });
+      if (!clips.length) { main.innerHTML = renderEmpty(); bindImgFallback(); return; }
+      main.innerHTML = tagChip + `<div class="kanban">${STATUSES.map(s => {
+        const col = list.filter(c => c.status === s.id);
+        return `
+          <section class="col" data-col="${s.id}" aria-label="${s.label}">
+            <div class="col-head"><span class="dot" style="background:var(--s-${s.id})"></span>${s.label}<span class="count">${col.length}</span></div>
+            ${col.length ? col.map(cardHTML).join('') : '<div class="col-empty">Arraste clipes para cá</div>'}
+          </section>`;
+      }).join('')}</div>`;
+    }
+    bindImgFallback();
+  }
+
+  function bindImgFallback() {
+    $$('img[data-fallback]').forEach(img => {
+      img.addEventListener('error', () => {
+        const ph = img.parentElement?.querySelector('.ph');
+        img.remove();
+        if (ph) ph.style.display = '';
+      }, { once: true });
+      // O YouTube devolve uma imagem cinza de 120x90 quando o vídeo não existe.
+      img.addEventListener('load', () => {
+        if (img.naturalWidth === 120 && img.naturalHeight === 90) img.dispatchEvent(new Event('error'));
+      }, { once: true });
+    });
+  }
+
+  // ---------- Ações ----------
+  function upsert(data) {
+    const now = new Date().toISOString();
+    const i = clips.findIndex(c => c.id === data.id);
+    if (i >= 0) clips[i] = { ...clips[i], ...data, atualizadoEm: now };
+    else clips.push(normalize({ ...data, id: uid(), criadoEm: now, atualizadoEm: now }));
+    persist(); render();
+  }
+
+  function setStatus(id, status) {
+    const c = clips.find(c => c.id === id);
+    if (!c || c.status === status) return;
+    c.status = status;
+    c.atualizadoEm = new Date().toISOString();
+    if (status === 'publicado' && !c.data) c.data = today();
+    persist(); render();
+    toast(`“${c.titulo}” → ${STATUS_BY_ID[status].label}`);
+  }
+
+  function removeClip(id) {
+    const i = clips.findIndex(c => c.id === id);
+    if (i < 0) return;
+    const [removed] = clips.splice(i, 1);
+    persist(); render();
+    toast(`Clipe excluído`, () => { clips.splice(i, 0, removed); persist(); render(); });
+  }
+
+  const today = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function toast(msg, undo) {
+    const el = $('#toast'), btn = $('#toastUndo');
+    $('#toastMsg').textContent = msg;
+    btn.hidden = !undo;
+    btn.onclick = () => { undo(); el.classList.remove('show'); };
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), undo ? 6000 : 2600);
+  }
+
+  // ---------- Formulário ----------
+  const dlgForm = $('#dlgForm');
+  const form = $('#form');
+  let editingId = null;
+  let platTouched = false;
+
+  function fillSelect(sel, items, withAll) {
+    sel.innerHTML = (withAll ? `<option value="">${withAll}</option>` : '') +
+      items.map(i => `<option value="${i.id}">${esc(i.label)}</option>`).join('');
+  }
+
+  function openForm(id) {
+    editingId = id || null;
+    const c = id ? clips.find(c => c.id === id) : null;
+    $('#formTitle').textContent = c ? 'Editar clipe' : 'Novo clipe';
+    $('#btnDelete').hidden = !c;
+    $('#errTitulo').hidden = true;
+    form.titulo.value = c?.titulo || '';
+    form.url.value = c?.url || '';
+    form.plataforma.value = c?.plataforma || 'youtube';
+    form.status.value = c?.status || (state.status || 'ideia');
+    form.data.value = c?.data || '';
+    form.duracao.value = c?.duracao || '';
+    form.favorito.value = c?.favorito ? '1' : '0';
+    form.tags.value = c?.tags.join(', ') || '';
+    form.thumb.value = c?.thumb || '';
+    form.notas.value = c?.notas || '';
+    platTouched = !!c;
+    dlgForm.showModal();
+    form.titulo.focus();
+  }
+
+  form.url.addEventListener('input', () => {
+    if (platTouched) return;
+    const p = detectPlatform(form.url.value.trim());
+    if (p) form.plataforma.value = p;
+  });
+  form.plataforma.addEventListener('change', () => { platTouched = true; });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const titulo = form.titulo.value.trim();
+    if (!titulo) { $('#errTitulo').hidden = false; form.titulo.focus(); return; }
+    upsert({
+      id: editingId,
+      titulo,
+      url: form.url.value.trim(),
+      plataforma: form.plataforma.value,
+      status: form.status.value,
+      data: form.data.value,
+      duracao: form.duracao.value.trim(),
+      favorito: form.favorito.value === '1',
+      tags: parseTags(form.tags.value),
+      thumb: form.thumb.value.trim(),
+      notas: form.notas.value.trim(),
+    });
+    dlgForm.close();
+    toast(editingId ? 'Clipe atualizado' : 'Clipe adicionado');
+  });
+
+  $('#btnDelete').addEventListener('click', () => {
+    if (!editingId) return;
+    dlgForm.close();
+    removeClip(editingId);
+  });
+
+  // ---------- Player ----------
+  const player = $('#player');
+  function openPlayer(c) {
+    const url = safeUrl(c.url);
+    $('#playerTitle').textContent = c.titulo;
+    const open = $('#playerOpen');
+    open.hidden = !url;
+    if (url) open.href = url;
+    const body = $('#playerBody');
+    const yt = youtubeId(c.url);
+    // Embeds do YouTube exigem página servida por http(s); em file:// mostram erro.
+    const canEmbed = location.protocol === 'http:' || location.protocol === 'https:';
+
+    if (yt && canEmbed) {
+      body.innerHTML = `<div class="player-box"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(yt)}?autoplay=1&rel=0" title="${esc(c.titulo)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+    } else if (url && isDirectVideo(url)) {
+      body.innerHTML = `<div class="player-box"><video src="${esc(url)}" controls autoplay playsinline></video></div>`;
+    } else {
+      body.innerHTML = `
+        <div class="player-fallback">
+          <p>${url ? `Esse vídeo abre direto no ${esc(PLAT_BY_ID[c.plataforma].label)}.` : 'Esse clipe ainda não tem link.'}</p>
+          ${url ? `<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Assistir no ${esc(PLAT_BY_ID[c.plataforma].label)} ↗</a>` : `<button class="btn primary" data-edit-from-player>Adicionar link</button>`}
+          ${c.notas ? `<p style="white-space:pre-wrap;text-align:left;max-width:520px">${esc(c.notas)}</p>` : ''}
+        </div>`;
+      const b = body.querySelector('[data-edit-from-player]');
+      if (b) b.onclick = () => { player.close(); openForm(c.id); };
+    }
+    player.showModal();
+  }
+  player.addEventListener('close', () => { $('#playerBody').innerHTML = ''; });
+
+  // ---------- Eventos principais ----------
+  $$('dialog').forEach(d => {
+    d.addEventListener('click', e => {
+      if (e.target === d || e.target.closest('[data-close]')) d.close();
+    });
+  });
+
+  $('#btnNew').addEventListener('click', () => openForm());
+  $('#btnBackup').addEventListener('click', () => $('#dlgBackup').showModal());
+
+  $('#stats').addEventListener('click', e => {
+    const b = e.target.closest('[data-status]');
+    if (!b) return;
+    state.status = b.dataset.status;
+    if (state.view === 'kanban' && state.status) setView('grid');
+    render();
+  });
+
+  $('#main').addEventListener('click', e => {
+    const emp = e.target.closest('[data-empty]');
+    if (emp) {
+      const a = emp.dataset.empty;
+      if (a === 'new') openForm();
+      if (a === 'demo') loadDemo();
+      if (a === 'clear') clearFilters();
+      if (a === 'untag') { state.tag = ''; render(); }
+      return;
+    }
+    const tag = e.target.closest('[data-tag]');
+    if (tag) { state.tag = tag.dataset.tag; render(); return; }
+
+    const card = e.target.closest('.card');
+    const act = e.target.closest('[data-act]');
+    if (!card || !act) return;
+    const c = clips.find(x => x.id === card.dataset.id);
+    if (!c) return;
+    switch (act.dataset.act) {
+      case 'play': openPlayer(c); break;
+      case 'edit': openForm(c.id); break;
+      case 'fav':
+        c.favorito = !c.favorito; c.atualizadoEm = new Date().toISOString();
+        persist(); render(); break;
+      case 'next': { const n = nextStatus(c.status); if (n) setStatus(c.id, n.id); break; }
+      case 'copy':
+        if (!c.url) break;
+        navigator.clipboard?.writeText(c.url).then(() => toast('Link copiado'), () => toast('Não deu para copiar'));
+        break;
+    }
+  });
+
+  // Arrastar e soltar no quadro
+  $('#main').addEventListener('dragstart', e => {
+    const card = e.target.closest('.card');
+    if (!card || state.view !== 'kanban') { if (state.view !== 'kanban') e.preventDefault(); return; }
+    e.dataTransfer.setData('text/plain', card.dataset.id);
+    e.dataTransfer.effectAllowed = 'move';
+    card.classList.add('dragging');
+  });
+  $('#main').addEventListener('dragend', e => e.target.closest?.('.card')?.classList.remove('dragging'));
+  $('#main').addEventListener('dragover', e => {
+    const col = e.target.closest('.col');
+    if (!col) return;
+    e.preventDefault();
+    $$('.col.over').forEach(c => c !== col && c.classList.remove('over'));
+    col.classList.add('over');
+  });
+  $('#main').addEventListener('dragleave', e => {
+    const col = e.target.closest('.col');
+    if (col && !col.contains(e.relatedTarget)) col.classList.remove('over');
+  });
+  $('#main').addEventListener('drop', e => {
+    const col = e.target.closest('.col');
+    if (!col) return;
+    e.preventDefault();
+    col.classList.remove('over');
+    setStatus(e.dataTransfer.getData('text/plain'), col.dataset.col);
+  });
+
+  // Filtros
+  let qTimer;
+  $('#q').addEventListener('input', e => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { state.q = e.target.value; render(); }, 120);
+  });
+  $('#fPlat').addEventListener('change', e => { state.plat = e.target.value; render(); });
+  $('#fSort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+  $('#fFav').addEventListener('change', e => { state.fav = e.target.checked; render(); });
+
+  function setView(v) {
+    state.view = v;
+    $('#vGrid').setAttribute('aria-pressed', v === 'grid');
+    $('#vKanban').setAttribute('aria-pressed', v === 'kanban');
+    if (v === 'kanban') state.status = '';
+  }
+  $('#vGrid').addEventListener('click', () => { setView('grid'); render(); });
+  $('#vKanban').addEventListener('click', () => { setView('kanban'); render(); });
+
+  function clearFilters() {
+    Object.assign(state, { q: '', plat: '', status: '', fav: false, tag: '' });
+    $('#q').value = ''; $('#fPlat').value = ''; $('#fFav').checked = false;
+    render();
+  }
+
+  // Atalhos
+  document.addEventListener('keydown', e => {
+    if (document.querySelector('dialog[open]')) return;
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+    if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openForm(); }
+    if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
+  });
+
+  // ---------- Backup ----------
+  function download(name, content, type) {
+    const blob = new Blob([content], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  $('#btnExportJson').addEventListener('click', () => {
+    download(`jelly-clips-${today()}.json`, JSON.stringify({ app: 'jelly-clips', versao: 1, exportadoEm: new Date().toISOString(), clips }, null, 2), 'application/json');
+  });
+
+  $('#btnExportCsv').addEventListener('click', () => {
+    const cols = ['titulo', 'status', 'plataforma', 'data', 'duracao', 'url', 'tags', 'favorito', 'notas'];
+    const cell = v => `"${String(v).replace(/"/g, '""')}"`;
+    const rows = clips.map(c => cols.map(k => {
+      if (k === 'tags') return cell(c.tags.join(', '));
+      if (k === 'status') return cell(STATUS_BY_ID[c.status].label);
+      if (k === 'plataforma') return cell(PLAT_BY_ID[c.plataforma].label);
+      if (k === 'favorito') return cell(c.favorito ? 'sim' : '');
+      if (k === 'data') return cell(fmtDate(c.data));
+      return cell(c[k]);
+    }).join(';'));
+    // BOM + ";" para o Excel em português abrir certinho
+    download(`jelly-clips-${today()}.csv`, '﻿' + [cols.join(';'), ...rows].join('\r\n'), 'text/csv;charset=utf-8');
+  });
+
+  $('#fileImport').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const json = JSON.parse(await file.text());
+      const incoming = (Array.isArray(json) ? json : json.clips || []).map(normalize).filter(Boolean);
+      if (!incoming.length) { toast('Arquivo sem clipes válidos'); return; }
+      let added = 0, updated = 0;
+      const byId = new Map(clips.map(c => [c.id, c]));
+      incoming.forEach(c => {
+        const cur = byId.get(c.id);
+        if (!cur) { clips.push(c); added++; }
+        else if (c.atualizadoEm > cur.atualizadoEm) { Object.assign(cur, c); updated++; }
+      });
+      persist(); render();
+      $('#dlgBackup').close();
+      toast(`Importado: ${added} novo(s), ${updated} atualizado(s)`);
+    } catch {
+      toast('Arquivo inválido');
+    }
+  });
+
+  $('#btnWipe').addEventListener('click', () => {
+    if (!clips.length) return;
+    if (!confirm(`Apagar todos os ${clips.length} clipes? Faça um backup antes se quiser guardar.`)) return;
+    const old = clips;
+    clips = [];
+    persist(); render();
+    $('#dlgBackup').close();
+    toast('Tudo apagado', () => { clips = old; persist(); render(); });
+  });
+
+  // ---------- Tema ----------
+  function applyTheme(t) {
+    if (t) document.documentElement.dataset.theme = t;
+    else delete document.documentElement.dataset.theme;
+  }
+  try { applyTheme(localStorage.getItem(THEME_KEY)); } catch {}
+  $('#btnTheme').addEventListener('click', () => {
+    const cur = document.documentElement.dataset.theme
+      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch {}
+  });
+
+  // ---------- Exemplos ----------
+  function loadDemo() {
+    const d = n => { const x = new Date(); x.setDate(x.getDate() - n); return x.toISOString().slice(0, 10); };
+    const now = Date.now();
+    const at = n => new Date(now - n * 60000).toISOString();
+    [
+      { titulo: 'Clutch 1v4 no final da ranked', url: 'https://www.twitch.tv/', status: 'publicado', data: d(6), duracao: '0:58', tags: ['gameplay', 'clutch'], favorito: true, notas: 'Melhor clipe do mês. Usar como capa do canal?' },
+      { titulo: 'Reação ao trailer novo', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', status: 'pronto', data: d(1), duracao: '8:12', tags: ['react'], notas: 'Falta só a thumbnail.' },
+      { titulo: 'Fail épico na live de sexta', url: 'https://www.tiktok.com/', status: 'editando', duracao: '0:32', tags: ['engraçado', 'shorts'], notas: 'Cortar dos 1:02:10 aos 1:02:42 da VOD. Colocar legenda.' },
+      { titulo: 'Collab com o pessoal', url: '', status: 'gravado', tags: ['collab'], notas: 'Arquivo bruto no HD externo, pasta /lives/outubro.' },
+      { titulo: 'Tutorial de configuração do setup', url: '', status: 'ideia', tags: ['tutorial'], notas: 'Mostrar câmera, mic e cenas do OBS.' },
+    ].forEach((c, i) => clips.push(normalize({ ...c, plataforma: detectPlatform(c.url) || 'outro', criadoEm: at(i + 1), atualizadoEm: at(i + 1) })));
+    persist(); render();
+    toast('Exemplos carregados — pode editar ou apagar à vontade');
+  }
+
+  // ---------- Inicialização ----------
+  fillSelect($('#fPlat'), PLATFORMS, 'Todas as plataformas');
+  fillSelect($('#iPlat'), PLATFORMS);
+  fillSelect($('#iStatus'), STATUSES);
+  render();
+
+  // Mantém abas abertas em sincronia
+  window.addEventListener('storage', e => { if (e.key === STORAGE_KEY) { clips = load(); render(); } });
+})();
+</script>
+</body>
+</html>
